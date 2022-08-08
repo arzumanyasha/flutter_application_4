@@ -44,6 +44,12 @@ class Products with ChangeNotifier {
 
   //var _showFavoritesOnly = false;
 
+  String _authToken;
+
+  set authToken(String value) {
+    _authToken = value;
+  }
+
   List<Product> get items {
     // if (_showFavoritesOnly) {
     //   return _items.where((prodItem) => prodItem.isFavorite).toList();
@@ -71,10 +77,13 @@ class Products with ChangeNotifier {
 
   Future<void> fetchAndSetProducts() async {
     final url = Uri.https(
-        'fluttershop-88964-default-rtdb.firebaseio.com', '/products.json');
+      'fluttershop-88964-default-rtdb.firebaseio.com',
+      '/products.json',
+      {'auth': '$_authToken'},
+    );
     try {
       final response = await http.get(url);
-      final extractedData = jsonDecode(response.body) as Map<String, dynamic>;
+      final extractedData = json.decode(response.body) as Map<String, dynamic>;
       final List<Product> loadedProducts = [];
       if (extractedData == null) {
         return;
@@ -94,13 +103,18 @@ class Products with ChangeNotifier {
       _items = loadedProducts;
       notifyListeners();
     } catch (error) {
+      print(error.toString());
       throw (error);
     }
   }
 
   Future<void> addProduct(Product product) async {
     final url = Uri.https(
-        'fluttershop-88964-default-rtdb.firebaseio.com', '/products.json');
+      'fluttershop-88964-default-rtdb.firebaseio.com',
+      '/products.json',
+      {'auth': '$_authToken'},
+    );
+
     try {
       final response = await http.post(
         url,
@@ -131,7 +145,7 @@ class Products with ChangeNotifier {
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     if (prodIndex >= 0) {
       final url = Uri.https('fluttershop-88964-default-rtdb.firebaseio.com',
-          '/products/$id.json');
+          '/products/$id.json', {'auth': '$_authToken'});
       await http.patch(url,
           body: json.encode({
             'title': newProduct.title,
@@ -147,8 +161,8 @@ class Products with ChangeNotifier {
   }
 
   Future<void> deleteProduct(String id) async {
-    final url = Uri.https(
-        'fluttershop-88964-default-rtdb.firebaseio.com', '/products/$id.json');
+    final url = Uri.https('fluttershop-88964-default-rtdb.firebaseio.com',
+        '/products/$id.json', {'auth': '$_authToken'});
     final existingProductIndex = _items.indexWhere((prod) => prod.id == id);
     var existingProduct = _items[existingProductIndex];
     _items.removeAt(existingProductIndex);
