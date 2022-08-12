@@ -81,11 +81,20 @@ class Products with ChangeNotifier {
   //   notifyListeners();
   // }
 
-  Future<void> fetchAndSetProducts() async {
+  Future<void> fetchAndSetProducts({bool filterByUser = false}) async {
+    final filterMap = filterByUser
+        ? {
+            'auth': '$_authToken',
+            'orderBy': "creatorId",
+            'equalTo': '$_userId',
+          }
+        : {
+            'auth': '$_authToken',
+          };
     var url = Uri.https(
       'fluttershop-88964-default-rtdb.firebaseio.com',
       '/products.json',
-      {'auth': '$_authToken'},
+      filterMap,
     );
     try {
       final response = await http.get(url);
@@ -95,7 +104,7 @@ class Products with ChangeNotifier {
         return;
       }
       url = Uri.https('fluttershop-88964-default-rtdb.firebaseio.com',
-        '/userFavorites/$_userId.json', {'auth': '$_authToken'});
+          '/userFavorites/$_userId.json', {'auth': '$_authToken'});
       final favoriteResponse = await http.get(url);
       final favoriteData = json.decode(favoriteResponse.body);
       extractedData.forEach((prodId, prodData) {
@@ -106,7 +115,8 @@ class Products with ChangeNotifier {
             description: prodData['description'],
             price: prodData['price'],
             imageUrl: prodData['imageUrl'],
-            isFavorite: favoriteData == null ? false : favoriteData[prodId] ?? false,
+            isFavorite:
+                favoriteData == null ? false : favoriteData[prodId] ?? false,
           ),
         );
       });
@@ -133,6 +143,7 @@ class Products with ChangeNotifier {
           'description': product.description,
           'imageUrl': product.imageUrl,
           'price': product.price,
+          'creatorId': _userId,
         }),
       );
       final newProduct = Product(

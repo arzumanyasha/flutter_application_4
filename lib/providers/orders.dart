@@ -22,9 +22,14 @@ class OrderItem {
 class Orders with ChangeNotifier {
   List<OrderItem> _orders = [];
   String _authToken;
+  String _userId;
 
   set authToken(String value) {
     _authToken = value;
+  }
+
+  set userId(String value) {
+    _userId = value;
   }
 
   List<OrderItem> get orders {
@@ -34,7 +39,7 @@ class Orders with ChangeNotifier {
   Future<void> fetchAndSetOrders() async {
     final url = Uri.https(
       'fluttershop-88964-default-rtdb.firebaseio.com',
-      '/orders.json',
+      '/orders/$_userId.json',
       {'auth': '$_authToken'},
     );
     final response = await http.get(url);
@@ -69,7 +74,7 @@ class Orders with ChangeNotifier {
     if (cartProducts.isNotEmpty) {
       final url = Uri.https(
         'fluttershop-88964-default-rtdb.firebaseio.com',
-        '/orders.json',
+        '/orders/$_userId.json',
         {'auth': '$_authToken'},
       );
       final timestamp = DateTime.now();
